@@ -15,13 +15,13 @@ export const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex space-x-8">
             <Link 
-              href="/dashboard" 
+              href="/dashboard/user" 
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/dashboard') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}
             >
               <FiHome className="mr-2" /> Inicio
             </Link>
             <Link 
-              href="/products" 
+              href="/products/" 
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/products') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}
             >
               <FiPackage className="mr-2" /> Productos

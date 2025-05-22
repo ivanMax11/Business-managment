@@ -41,7 +41,7 @@ export default function NuevaVentaPage() {
         usuario: 'admin', // o el usuario autenticado si lo tenés
         cliente,
       });
-      router.push('/dashboard');
+      router.push('/dashboard/user');
     } catch (err) {
       console.error('Error al registrar venta', err);
       alert('Error al registrar la venta');

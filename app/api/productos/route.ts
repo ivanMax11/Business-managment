@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { productoSchema } from '@/app/lib/validations/productoSchema';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -67,6 +67,19 @@ export async function POST(request: Request) {
         stock: validatedData.stock,
       },
     });
+
+    // si el stock inicial es mayor a 0, creamos un movimiento de entrada
+    if (validatedData.stock > 0) {
+      await prisma.movimientoStock.create({
+        data: {
+          producto_id: producto.id,
+          cantidad: validatedData.stock,
+          tipo_movimiento: 'ENTRADA',
+          motivo: "Stock inicial al creaar producto",
+          // Agregamos usuario si es que tenemos diponible
+        },
+      });
+    }
 
     return NextResponse.json(producto, { status: 201 });
   } catch (error: any) {

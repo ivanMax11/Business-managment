@@ -21,6 +21,7 @@ interface MovimientoFormatted {
   tipo: string;
   cantidad: number;
   motivo: string | null;
+  usuario: string; 
 }
 
 export async function GET(request: Request) {
@@ -75,18 +76,21 @@ export async function GET(request: Request) {
             nombre: true,
           },
         },
+        
       },
     });
 
     // Formatear los movimientos para la respuesta
-    const formattedMovimientos: MovimientoFormatted[] = movimientos.map((mov: MovimientoDB) => ({
-      id: mov.id,
-      fecha: mov.fecha,
-      producto: mov.producto.nombre,
-      tipo: mov.tipo_movimiento,
-      cantidad: mov.cantidad,
-      motivo: mov.motivo,
-    }));
+  const formattedMovimientos: MovimientoFormatted[] = movimientos.map((mov: any) => ({
+  id: mov.id,
+  fecha: mov.fecha,
+  producto: mov.producto.nombre,
+  tipo: mov.tipo_movimiento,
+  cantidad: mov.cantidad,
+  motivo: mov.motivo,
+  usuario: mov.usuario || 'Desconocido',
+}));
+
 
     return NextResponse.json(formattedMovimientos);
   } catch (error) {

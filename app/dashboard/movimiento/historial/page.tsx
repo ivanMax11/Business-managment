@@ -3,8 +3,18 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+interface Movimiento {
+  id: number;
+  fecha: Date;
+  producto: string;  // Ahora es string directamente
+  tipo: string;
+  cantidad: number;
+  motivo: string | null;
+  usuario: string;
+}
+
 export default function HistorialMovimientosPage() {
-  const [movimientos, setMovimientos] = useState([]);
+  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,14 +51,16 @@ export default function HistorialMovimientosPage() {
           </tr>
         </thead>
         <tbody>
-          {movimientos.map((mov: any, index: number) => (
-            <tr key={index} className="border-b hover:bg-gray-50">
-              <td className="px-4 py-2 border">{mov.producto?.nombre || 'Desconocido'}</td>
+          {movimientos.map((mov) => (
+            <tr key={mov.id} className="border-b hover:bg-gray-50">
+              <td className="px-4 py-2 border">{mov.producto}</td>
               <td className="px-4 py-2 border">{mov.cantidad}</td>
-              <td className="px-4 py-2 border">{mov.tipo_movimiento}</td>
-              <td className="px-4 py-2 border">{new Date(mov.fecha).toLocaleString()}</td>
+              <td className="px-4 py-2 border">{mov.tipo}</td>
+              <td className="px-4 py-2 border">
+                {new Date(mov.fecha).toLocaleString()}
+              </td>
               <td className="px-4 py-2 border">{mov.motivo || '-'}</td>
-              <td className="px-4 py-2 border">{mov.usuario || '-'}</td>
+              <td className="px-4 py-2 border">{mov.usuario}</td>
             </tr>
           ))}
         </tbody>

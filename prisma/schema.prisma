@@ -21,7 +21,7 @@ model User {
 
 model Producto {
   id                  Int               @id @default(autoincrement())
-  codigo_barra        String            @unique
+  codigo_barra        String?           @unique
   nombre              String
   descripcion         String?
   precio              Float
@@ -36,6 +36,7 @@ model Producto {
   ventas              Venta[]
 }
 
+
 enum TipoMovimiento {
   ENTRADA
   SALIDA
@@ -49,6 +50,7 @@ model MovimientoStock {
   tipo_movimiento TipoMovimiento
   motivo          String?
   fecha           DateTime       @default(now())
+  usuario_id      Int?
   usuario         String?
 }
 
@@ -59,7 +61,7 @@ model Cliente {
   email     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ventas Venta[]
+  ventas    Venta[]
 }
 
 model Venta {
