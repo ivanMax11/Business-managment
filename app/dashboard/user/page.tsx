@@ -59,9 +59,7 @@ export default function UserDashboard() {
 
     const fetchStats = async () => {
       try {
-        const res = await fetch('/api/dashboard/stats');
-        if (!res.ok) throw new Error('Error en la respuesta del servidor');
-        const data = await res.json();
+        const { data } = await axios.get('/api/dashboard/stats');
         setStats({
           products: data.totalProducts || 0,
           lowStock: data.lowStockItems || 0,
@@ -84,13 +82,21 @@ export default function UserDashboard() {
     };
 
     fetchStats();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
-    axios.get('/api/movimientos')
-      .then((res) => setMovimientos(res.data))
-      .catch((err) => console.error('Error al cargar movimientos:', err));
+    const fetchMovimientos = async () => {
+      try {
+        const { data } = await axios.get('/api/movimientos');
+        setMovimientos(data);
+      } catch (err) {
+        console.error('Error al cargar movimientos:', err);
+      }
+    };
+
+    fetchMovimientos();
   }, []);
+
 
   const movimientosFiltrados = movimientos.filter((mov) => {
     const fechaMov = new Date(mov.fecha);
@@ -161,28 +167,28 @@ export default function UserDashboard() {
           title="Ventas Mensuales"
           value={`$${stats.monthlySales.toLocaleString()}`}
           icon={<FiDollarSign className="text-purple-500" size={24} />}
-          trend="up"
+          trend={stats.lowStockGrowth >= 0 ? 'up' : 'down'}
           percentage={`${Math.abs(stats.salesGrowth).toFixed(1)}%`}
         />
         <DashboardCard
           title="Clientes"
           value={stats.customers.toString()}
           icon={<FiUsers className="text-yellow-500" size={24} />}
-          trend="up"
+          trend={stats.lowStockGrowth >= 0 ? 'up' : 'down'}
           percentage={`${Math.abs(stats.customersGrowth).toFixed(1)}%`}
         />
         <DashboardCard
           title="Ingresos Mensuales"
           value={`$${stats.revenue.toLocaleString()}`}
           icon={<FiTrendingUp className="text-green-500" size={24} />}
-          trend="up"
+          trend={stats.lowStockGrowth >= 0 ? 'up' : 'down'}
           percentage={`${Math.abs(stats.revenueGrowth).toFixed(1)}%`}
         />
         <DashboardCard
           title="Ganancia Neta"
           value={`$${stats.profit.toLocaleString()}`}
           icon={<FiPieChart className="text-emerald-500" size={24} />}
-          trend="up"
+          trend={stats.lowStockGrowth >= 0 ? 'up' : 'down'}
           percentage={`${Math.abs(stats.profitGrowth).toFixed(1)}%`}
         />
       </div>
@@ -260,12 +266,13 @@ export default function UserDashboard() {
             >
               <FiRefreshCw /> Registrar Movimiento
             </button>
-            <button
-              onClick={() => router.push('/dashboard/movimiento/historial/')}
-              className="w-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 flex items-center justify-center gap-2 py-2 px-4 rounded transition"
+           <button
+            onClick={() => router.push('/dashboard/movimiento/historial/')}
+            className="w-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 flex items-center justify-center gap-2 py-2 px-4 rounded transition"
             >
-              <FiRefreshCw /> Historial de Movimientos
+              <FiList /> Historial de Movimientos
             </button>
+
             <button
               onClick={() => router.push('/sales/new')}
               className="w-full bg-green-100 text-green-700 hover:bg-green-200 flex items-center justify-center gap-2 py-2 px-4 rounded transition"

@@ -24,17 +24,22 @@ export async function GET(request: Request) {
   const total = await prisma.venta.count({ where });
 
   const ventas = await prisma.venta.findMany({
-    where,
-    skip: (page - 1) * perPage,
-    take: perPage,
-    orderBy: {
-      fecha: 'desc',
-    },
-    include: {
-      producto: true,
-      cliente: true,
-    },
-  });
+  where,
+  skip: (page - 1) * perPage,
+  take: perPage,
+  orderBy: {
+    fecha: 'desc',
+  },
+  include: {
+    variante: {
+      include: {
+        producto: true,
+      },
+  },
+  cliente: true,
+},
+});
+
 
   return NextResponse.json({ total, ventas });
 }

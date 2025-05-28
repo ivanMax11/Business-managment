@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProductoFormValues, productoSchema } from '../../lib/validations/productoSchema';
 import { Button } from '../ui/Button';
@@ -8,6 +8,7 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
+import { FieldError } from 'react-hook-form';
 
 interface ProductoFormProps {
   initialData?: any;
@@ -19,6 +20,11 @@ const categorias = ['Camisetas', 'Pantalones', 'Vestidos', 'Abrigos', 'Accesorio
 const tallas = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const colores = ['Rojo', 'Azul', 'Verde', 'Negro', 'Blanco', 'Gris'];
 
+// ✅ Helper para limpiar el tipo de error
+function getFieldError(error: any): FieldError | undefined {
+  return error && typeof error === 'object' && 'message' in error ? (error as FieldError) : undefined;
+}
+
 export const ProductoForm = ({ initialData, onSubmit, isSubmitting }: ProductoFormProps) => {
   const [codigoGenerado, setCodigoGenerado] = useState('');
 
@@ -26,14 +32,20 @@ export const ProductoForm = ({ initialData, onSubmit, isSubmitting }: ProductoFo
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
-  } = useForm<ProductoFormValues>({
+  } = useForm({
     resolver: zodResolver(productoSchema),
     defaultValues: initialData || {
-      stock: 0,
       precio: 0,
       costo: 0,
+      variantes: [{ color: '', talla: '', stock: 0 }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'variantes',
   });
 
   const generarCodigo = () => {
@@ -50,15 +62,10 @@ export const ProductoForm = ({ initialData, onSubmit, isSubmitting }: ProductoFo
             label="Código de Barras"
             id="codigo_barra"
             register={register}
-            error={errors.codigo_barra}
+            error={getFieldError(errors.codigo_barra)}
             required
           />
-          <Button
-            type="button"
-            onClick={generarCodigo}
-            className="mt-2"
-            variant="outline"
-          >
+          <Button type="button" onClick={generarCodigo} className="mt-2" variant="outline">
             Generar Código
           </Button>
           {codigoGenerado && (
@@ -68,77 +75,50 @@ export const ProductoForm = ({ initialData, onSubmit, isSubmitting }: ProductoFo
           )}
         </div>
 
-        <Input
-          label="Nombre"
-          id="nombre"
-          register={register}
-          error={errors.nombre}
-          required
-        />
-
-        <Input
-          label="Precio"
-          id="precio"
-          type="number"
-          step="0.01"
-          register={register}
-          error={errors.precio}
-          required
-        />
-
-        <Input
-          label="Costo"
-          id="costo"
-          type="number"
-          step="0.01"
-          register={register}
-          error={errors.costo}
-          required
-        />
-
-        <Select
-          label="Categoría"
-          id="categoria"
-          options={categorias}
-          register={register}
-          error={errors.categoria}
-        />
-
-        <Select
-          label="Talla"
-          id="talla"
-          options={tallas}
-          register={register}
-          error={errors.talla}
-        />
-
-        <Select
-          label="Color"
-          id="color"
-          options={colores}
-          register={register}
-          error={errors.color}
-        />
-
-        <Input
-          label="Stock"
-          id="stock"
-          type="number"
-          register={register}
-          error={errors.stock}
-          required
-        />
+        <Input label="Nombre" id="nombre" register={register} error={getFieldError(errors.nombre)} required />
+        <Input label="Precio" id="precio" type="number" step="0.01" register={register} error={getFieldError(errors.precio)} required />
+        <Input label="Costo" id="costo" type="number" step="0.01" register={register} error={getFieldError(errors.costo)} required />
+        <Select label="Categoría" id="categoria" options={categorias} register={register} error={getFieldError(errors.categoria)} />
       </div>
 
       <div>
-        <Input
-          label="Descripción"
-          id="descripcion"
-          register={register}
-          error={errors.descripcion}
-          multiline
-        />
+        <label className="block font-semibold text-gray-700">Variantes</label>
+        {fields.map((field, index) => (
+          <div key={field.id} className="border rounded p-4 mb-2 space-y-2">
+            <Select
+              label="Color"
+              id={`variantes.${index}.color`}
+              options={colores}
+              register={register}
+              error={(errors.variantes as any)?.[index]?.color}
+            />
+            <Select
+              label="Talla"
+              id={`variantes.${index}.talla`}
+              options={tallas}
+              register={register}
+              error={(errors.variantes as any)?.[index]?.talla}
+            />
+            <Input
+              label="Stock"
+              id={`variantes.${index}.stock`}
+              type="number"
+              register={register}
+              error={(errors.variantes as any)?.[index]?.stock}
+              required
+            />
+
+            <Button type="button" variant="destructive" onClick={() => remove(index)} className="mt-1">
+              Eliminar Variante
+            </Button>
+          </div>
+        ))}
+        <Button type="button" variant="outline" onClick={() => append({ color: '', talla: '', stock: 0 })}>
+          Agregar Variante
+        </Button>
       </div>
+
+      <Input label="Descripción" id="descripcion" register={register} error={getFieldError(errors.descripcion)} multiline />
 
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Guardando...' : 'Guardar'}

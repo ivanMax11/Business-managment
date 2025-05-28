@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { connect } from 'http2';
 
 const prisma = new PrismaClient();
 
@@ -106,32 +107,39 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { producto_id, cantidad, tipo_movimiento, motivo, usuario } = body;
+    const { producto_id, variante_id, cantidad, tipo_movimiento, motivo, usuario } = body;
 
-    if (!producto_id || !cantidad || !tipo_movimiento) {
+    if (!variante_id || !cantidad || cantidad <= 0 || !tipo_movimiento) {
       return NextResponse.json(
         { error: 'Faltan datos obligatorios.' },
         { status: 400 }
       );
     }
 
-    const producto = await prisma.producto.findUnique({
-      where: { id: producto_id },
+    const varianteIdInt = parseInt(variante_id, 10);
+    const productoIdInt = parseInt(producto_id, 10);
+
+    if (isNaN(varianteIdInt) || isNaN(productoIdInt)) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    }
+
+    const variante = await prisma.varianteProducto.findUnique({
+      where: { id: varianteIdInt },
     });
 
-    if (!producto) {
+    if (!variante) {
       return NextResponse.json(
-        { error: 'Producto no encontrado.' },
+        { error: 'Variante no encontrada.' },
         { status: 404 }
       );
     }
 
-    let nuevoStock = producto.stock;
+    let nuevoStock = variante.stock;
 
     if (tipo_movimiento === 'ENTRADA') {
       nuevoStock += cantidad;
     } else if (tipo_movimiento === 'SALIDA') {
-      if (producto.stock < cantidad) {
+      if (variante.stock < cantidad) {
         return NextResponse.json(
           { error: 'Stock insuficiente para realizar salida.' },
           { status: 400 }
@@ -145,18 +153,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // ✅ Guardar el movimiento
     const movimiento = await prisma.movimientoStock.create({
       data: {
-        producto_id,
+        producto_id: productoIdInt,
+        varianteId: varianteIdInt,
         cantidad,
         tipo_movimiento,
         motivo,
-        usuario
+        usuario,
+        fecha: new Date(),
       },
     });
 
-    await prisma.producto.update({
-      where: { id: producto_id },
+    // ✅ Actualizar stock
+    await prisma.varianteProducto.update({
+      where: { id: varianteIdInt },
       data: { stock: nuevoStock },
     });
 
@@ -164,6 +176,7 @@ export async function POST(request: Request) {
       message: 'Movimiento registrado exitosamente.',
       movimiento,
     });
+
   } catch (error) {
     console.error('[MOVIMIENTO_POST_ERROR]', error);
     return NextResponse.json(
@@ -172,3 +185,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

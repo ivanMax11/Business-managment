@@ -5,10 +5,15 @@ export async function GET() {
   try {
     // 📦 Productos totales y con stock bajo
     const totalProducts = await prisma.producto.count();
+
     const lowStockItems = await prisma.producto.count({
       where: {
-        stock: {
-          lt: 5,
+        variantes: {
+          some: {
+            stock: {
+              lt: 5,
+            },
+          },
         },
       },
     });
@@ -16,10 +21,15 @@ export async function GET() {
     // 🔄 Movimientos de stock de hoy
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
     const todayMovements = await prisma.movimientoStock.count({
       where: {
         fecha: {
           gte: today,
+          lte: endOfToday,
         },
       },
     });
@@ -40,11 +50,26 @@ export async function GET() {
         },
       },
       include: {
-        producto: true,
+        variante: {
+          include: {
+            producto: true,
+          },
+        },
       },
     });
 
     const monthlySales = ventasDelMes.length;
+
+    const monthlyRevenue = ventasDelMes.reduce((total, venta) => {
+      const precio = venta.variante?.producto?.precio || 0;
+      return total + venta.cantidad * precio;
+    }, 0);
+
+    const monthlyProfit = ventasDelMes.reduce((total, venta) => {
+      const precio = venta.variante?.producto?.precio || 0;
+      const costo = venta.variante?.producto?.costo || 0;
+      return total + venta.cantidad * (precio - costo);
+    }, 0);
 
     // 🧾 Ventas del mes anterior
     const ventasMesAnterior = await prisma.venta.count({
@@ -56,60 +81,50 @@ export async function GET() {
       },
     });
 
-    // 💰 Ingresos mensuales
-    const monthlyRevenue = ventasDelMes.reduce((total, venta) => {
-      return total + venta.cantidad * (venta.producto?.precio || 0);
-    }, 0);
-
-    // 🧾 Ganancia neta
-    const monthlyProfit = ventasDelMes.reduce((total, venta) => {
-      const precioVenta = venta.producto?.precio || 0;
-      const costo = venta.producto?.costo || 0;
-      return total + venta.cantidad * (precioVenta - costo);
-    }, 0);
-
-    // Ingresos del mes anterior
     const ventasMesAnteriorDetalladas = await prisma.venta.findMany({
-  where: {
-    fecha: {
-      gte: startOfLastMonth,
-      lte: endOfLastMonth,
-    },
-  },
-  include: {
-    producto: true,
-  },
-});
+      where: {
+        fecha: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth,
+        },
+      },
+      include: {
+        variante: {
+          include: {
+            producto: true,
+          },
+        },
+      },
+    });
 
-const revenueLastMonth = ventasMesAnteriorDetalladas.reduce((total, venta) => {
-  return total + venta.cantidad * (venta.producto?.precio || 0);
-}, 0);
+    const revenueLastMonth = ventasMesAnteriorDetalladas.reduce((total, venta) => {
+      const precio = venta.variante?.producto?.precio || 0;
+      return total + venta.cantidad * precio;
+    }, 0);
 
-const profitLastMonth = ventasMesAnteriorDetalladas.reduce((total, venta) => {
-  const precioVenta = venta.producto?.precio || 0;
-  const costo = venta.producto?.costo || 0;
-  return total + venta.cantidad * (precioVenta - costo);
-}, 0);
+    const profitLastMonth = ventasMesAnteriorDetalladas.reduce((total, venta) => {
+      const precio = venta.variante?.producto?.precio || 0;
+      const costo = venta.variante?.producto?.costo || 0;
+      return total + venta.cantidad * (precio - costo);
+    }, 0);
 
-// 📈 Porcentajes de crecimiento adicionales
-const revenueGrowth =
-  revenueLastMonth > 0
-    ? ((monthlyRevenue - revenueLastMonth) / revenueLastMonth) * 100
-    : monthlyRevenue > 0
-    ? 100
-    : 0;
+    const revenueGrowth =
+      revenueLastMonth > 0
+        ? ((monthlyRevenue - revenueLastMonth) / revenueLastMonth) * 100
+        : monthlyRevenue > 0
+        ? 100
+        : 0;
 
-const profitGrowth =
-  profitLastMonth > 0
-    ? ((monthlyProfit - profitLastMonth) / profitLastMonth) * 100
-    : monthlyProfit > 0
-    ? 100
-    : 0;
+    const profitGrowth =
+      profitLastMonth > 0
+        ? ((monthlyProfit - profitLastMonth) / profitLastMonth) * 100
+        : monthlyProfit > 0
+        ? 100
+        : 0;
 
-    // 🧍‍♂️ Clientes totales
+    // 🧍‍♂️ Clientes
     const totalCustomers = await prisma.cliente.count();
 
-    // 🧍‍♂️ Nuevos clientes este mes
     const customersThisMonth = await prisma.cliente.count({
       where: {
         createdAt: {
@@ -119,7 +134,6 @@ const profitGrowth =
       },
     });
 
-    // 🧍‍♂️ Nuevos clientes el mes anterior
     const customersLastMonth = await prisma.cliente.count({
       where: {
         createdAt: {
@@ -129,7 +143,6 @@ const profitGrowth =
       },
     });
 
-    // 📈 Porcentajes de crecimiento
     const salesGrowth =
       ventasMesAnterior > 0
         ? ((monthlySales - ventasMesAnterior) / ventasMesAnterior) * 100
@@ -144,7 +157,6 @@ const profitGrowth =
         ? 100
         : 0;
 
-    // ✅ Devolver todo organizado
     return NextResponse.json({
       totalProducts,
       lowStockItems,
@@ -156,7 +168,7 @@ const profitGrowth =
       salesGrowth,
       customersGrowth,
       revenueGrowth,
-      profitGrowth
+      profitGrowth,
     });
   } catch (error) {
     console.error('[DASHBOARD_STATS_ERROR]', error);

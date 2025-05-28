@@ -16,7 +16,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       include: {
         ventas: {
           include: {
-            producto: true,
+            variante: {
+              include: {
+                producto: true,
+              },
+            },
           },
           orderBy: {
             fecha: 'desc',

@@ -6,22 +6,33 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { productoId, cantidad, motivo, usuario, cliente } = body;
+    const { varianteId, cantidad, motivo, usuario, cliente } = body;
 
-    if (!productoId || !cantidad || cantidad <= 0 || !cliente?.nombre) {
+    console.log('Body recibido en /api/ventas:', body);
+
+    if (!varianteId || !cantidad || cantidad <= 0 || !cliente?.nombre) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
     }
 
-    // Buscar producto
-    const producto = await prisma.producto.findUnique({
-      where: { id: productoId },
+    // Buscar variante con producto relacionado (mover esto arriba)
+    const variante = await prisma.varianteProducto.findUnique({
+      where: { id: varianteId },
+      select: {
+        id: true,
+        stock: true,
+        productoId: true,
+        producto: {
+          select: { id: true, nombre: true }
+        }
+      },
     });
 
-    if (!producto) {
-      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
+    if (!variante) {
+      return NextResponse.json({ error: 'Variante no encontrada' }, { status: 404 });
     }
 
-    if (producto.stock < cantidad) {
+    if (variante.stock < cantidad) {
+      console.log(`Stock insuficiente: variante ${variante.id} tiene ${variante.stock}, se pidió ${cantidad}`);
       return NextResponse.json({ error: 'Stock insuficiente' }, { status: 400 });
     }
 
@@ -46,19 +57,19 @@ export async function POST(request: Request) {
       });
     }
 
-    // Registra la venta
+    // Registrar la venta con productoId y varianteId
     const venta = await prisma.venta.create({
       data: {
-        productoId,
+        varianteId: variante.id,
         cantidad,
         clienteId: clienteExistente.id,
         fecha: new Date(),
       },
     });
 
-    // Actualizar stock del producto
-    await prisma.producto.update({
-      where: { id: productoId },
+    // Actualizar stock de variante
+    await prisma.varianteProducto.update({
+      where: { id: varianteId },
       data: {
         stock: {
           decrement: cantidad,
@@ -68,14 +79,16 @@ export async function POST(request: Request) {
 
     // Registrar movimiento de stock tipo SALIDA
     await prisma.movimientoStock.create({
-      data: {
-        producto_id: productoId,
-        cantidad,
-        tipo_movimiento: TipoMovimiento.SALIDA,
-        motivo: motivo || 'Venta',
-        usuario: usuario || 'sistema',
-      },
-    });
+  data: {
+    producto_id: variante.productoId,
+    varianteId: variante.id,
+    cantidad,
+    tipo_movimiento: TipoMovimiento.SALIDA,
+    motivo: motivo || 'Venta',
+    usuario: usuario || 'sistema',
+  },
+});
+
 
     return NextResponse.json({ message: 'Venta registrada correctamente' }, { status: 200 });
   } catch (error) {

@@ -17,6 +17,9 @@ export async function GET(request: Request) {
       orderBy: {
         fecha_creacion: 'desc',
       },
+      include: {
+        variantes: true,
+      },
     });
 
     const total = await prisma.producto.count();
@@ -44,9 +47,12 @@ export async function POST(request: Request) {
 
     const parsedBody = {
       ...body,
-      precio: body.precio ? parseFloat(body.precio) : 0,
-      costo: body.costo ? parseFloat(body.costo) : 0,
-      stock: body.stock ? parseInt(body.stock) : 0,
+      precio: parseFloat(body.precio),
+      costo: parseFloat(body.costo),
+      variantes: body.variantes.map((v: any) => ({
+        ...v,
+        stock: parseInt(v.stock),
+      })),
     };
 
     const validatedData = productoSchema.parse({
@@ -62,23 +68,28 @@ export async function POST(request: Request) {
         precio: validatedData.precio,
         costo: validatedData.costo,
         categoria: validatedData.categoria,
-        talla: validatedData.talla,
-        color: validatedData.color,
-        stock: validatedData.stock,
+        variantes: {
+          create: validatedData.variantes,
+        },
+      },
+      include: {
+        variantes: true,
       },
     });
 
-    // si el stock inicial es mayor a 0, creamos un movimiento de entrada
-    if (validatedData.stock > 0) {
-      await prisma.movimientoStock.create({
-        data: {
-          producto_id: producto.id,
-          cantidad: validatedData.stock,
-          tipo_movimiento: 'ENTRADA',
-          motivo: "Stock inicial al creaar producto",
-          // Agregamos usuario si es que tenemos diponible
-        },
-      });
+    // Crear movimientos por cada variante con stock > 0
+    for (const variante of producto.variantes) {
+      if (variante.stock > 0) {
+        await prisma.movimientoStock.create({
+          data: {
+            producto_id: producto.id,
+            varianteId: variante.id,
+            cantidad: variante.stock,
+            tipo_movimiento: 'ENTRADA',
+            motivo: `Stock inicial de variante ${variante.color || ''}-${variante.talla || ''}`,
+          },
+        });
+      }
     }
 
     return NextResponse.json(producto, { status: 201 });
@@ -105,3 +116,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

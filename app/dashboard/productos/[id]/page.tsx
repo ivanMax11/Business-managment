@@ -11,7 +11,9 @@ export default function EditarProductoPage({ params }: { params: { id: string } 
   const { mutate: updateProducto, isPending } = useUpdateProducto();
 
   if (isLoading) return <div>Cargando...</div>;
-  if (error || !producto) return notFound();
+  if (error) return <div>Error al cargar el producto.</div>;
+if (!producto) return <div>No se encontró el producto.</div>;
+
 
   const handleSubmit = (values: any) => {
     updateProducto(

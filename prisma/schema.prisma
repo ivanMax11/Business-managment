@@ -20,22 +20,30 @@ model User {
 }
 
 model Producto {
-  id                  Int               @id @default(autoincrement())
-  codigo_barra        String?           @unique
+  id                  Int                @id @default(autoincrement())
+  codigo_barra        String?            @unique
   nombre              String
   descripcion         String?
   precio              Float
   costo               Float
   categoria           String?
-  talla               String?
-  color               String?
-  stock               Int               @default(0)
-  fecha_creacion      DateTime          @default(now())
-  fecha_actualizacion DateTime          @updatedAt
+  fecha_creacion      DateTime           @default(now())
+  fecha_actualizacion DateTime           @updatedAt
+  variantes           VarianteProducto[]
   movimientos         MovimientoStock[]
-  ventas              Venta[]
 }
 
+model VarianteProducto {
+  id         Int      @id @default(autoincrement())
+  producto   Producto @relation(fields: [productoId], references: [id])
+  productoId Int
+  color      String?
+  talla      String?
+  stock      Int      @default(0)
+  ventas     Venta[]
+
+  movimientos MovimientoStock[]
+}
 
 enum TipoMovimiento {
   ENTRADA
@@ -43,13 +51,15 @@ enum TipoMovimiento {
 }
 
 model MovimientoStock {
-  id              Int            @id @default(autoincrement())
-  producto        Producto       @relation(fields: [producto_id], references: [id])
+  id              Int              @id @default(autoincrement())
+  producto        Producto         @relation(fields: [producto_id], references: [id])
   producto_id     Int
+  variante        VarianteProducto @relation(fields: [varianteId], references: [id])
+  varianteId      Int
   cantidad        Int
   tipo_movimiento TipoMovimiento
   motivo          String?
-  fecha           DateTime       @default(now())
+  fecha           DateTime         @default(now())
   usuario_id      Int?
   usuario         String?
 }
@@ -65,11 +75,11 @@ model Cliente {
 }
 
 model Venta {
-  id         Int      @id @default(autoincrement())
-  producto   Producto @relation(fields: [productoId], references: [id])
-  productoId Int
-  cliente    Cliente  @relation(fields: [clienteId], references: [id])
+  id         Int              @id @default(autoincrement())
+  variante   VarianteProducto @relation(fields: [varianteId], references: [id])
+  varianteId Int
+  cliente    Cliente          @relation(fields: [clienteId], references: [id])
   clienteId  Int
   cantidad   Int
-  fecha      DateTime @default(now())
+  fecha      DateTime         @default(now())
 }

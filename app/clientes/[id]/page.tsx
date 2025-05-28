@@ -8,10 +8,13 @@ interface Venta {
   id: number;
   cantidad: number;
   fecha: string;
-  producto: {
+  variante: {
+    producto: {
     nombre: string;
     precio: number; // ✅ Aquí añadimos el precio
   };
+  }
+  
 }
 
 interface Cliente {
@@ -26,10 +29,10 @@ export default function ClienteHistorialPage() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [loading, setLoading] = useState(true);
 
- const formatoMoneda = new Intl.NumberFormat('es-AR', {
-  style: 'currency',
-  currency: 'ARS',
-});
+  const formatoMoneda = new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+  });
 
 
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function ClienteHistorialPage() {
   if (!cliente) return <div className="p-6 text-red-600">Cliente no encontrado.</div>;
 
   const total = cliente.ventas.reduce((sum, venta) => {
-    return sum + venta.producto.precio * venta.cantidad;
+    return sum + venta.variante.producto.precio * venta.cantidad;
   }, 0);
 
   return (
@@ -77,28 +80,28 @@ export default function ClienteHistorialPage() {
               </tr>
             </thead>
             <tbody>
-  {cliente.ventas.map((venta) => (
-    <tr key={venta.id}>
-      <td className="px-4 py-2 border">{venta.producto.nombre}</td>
-      <td className="px-4 py-2 border">
-        {formatoMoneda.format(venta.producto.precio)}
-      </td>
-      <td className="px-4 py-2 border">{venta.cantidad}</td>
-      <td className="px-4 py-2 border">
-        {formatoMoneda.format(venta.producto.precio * venta.cantidad)}
-      </td>
-      <td className="px-4 py-2 border">
-        {new Date(venta.fecha).toLocaleString()}
-      </td>
-    </tr>
-  ))}
-</tbody>
+              {cliente.ventas.map((venta) => (
+                <tr key={venta.id}>
+                  <td className="px-4 py-2 border">{venta.variante.producto.nombre}</td>
+                  <td className="px-4 py-2 border">
+                    {formatoMoneda.format(venta.variante.producto.precio)}
+                  </td>
+                  <td className="px-4 py-2 border">{venta.cantidad}</td>
+                  <td className="px-4 py-2 border">
+                    {formatoMoneda.format(venta.variante.producto.precio * venta.cantidad)}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {new Date(venta.fecha).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
 
           </table>
 
           <p className="text-right font-bold mt-4">
-  Total gastado: {formatoMoneda.format(total)}
-</p>
+            Total gastado: {formatoMoneda.format(total)}
+          </p>
 
         </>
       )}

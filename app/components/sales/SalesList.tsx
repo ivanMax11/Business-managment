@@ -104,19 +104,41 @@ export default function SalesList() {
                     </tr>
                 </thead>
                 <tbody>
-                    {ventas.map((venta) => (
-                        <tr key={venta.id}>
-                            <td className="p-2 border">{new Date(venta.fecha).toLocaleDateString()}</td>
-                            <td className="p-2 border">{venta.producto.nombre}</td>
-                            <td className="p-2 border">{venta.cantidad}</td>
-                            <td className="p-2 border">${venta.producto.precio.toFixed(2)}</td>
-                            <td className="p-2 border">
-                                ${(venta.producto.precio * venta.cantidad).toFixed(2)}
-                            </td>
-                            <td className="p-2 border">{venta.cliente.nombre}</td>
-                        </tr>
-                    ))}
-                </tbody>
+  {ventas.map((venta) => {
+    const producto = venta.variante?.producto;
+    const cliente = venta.cliente;
+
+    const formatter = new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+    });
+
+    const precioUnitario = producto?.precio ?? 0;
+    const total = precioUnitario * venta.cantidad;
+
+    return (
+      <tr key={venta.id}>
+        <td className="p-2 border">
+          {new Date(venta.fecha).toLocaleDateString()}
+        </td>
+
+        <td className="p-2 border">
+          {producto?.nombre ?? 'Sin nombre'}
+        </td>
+
+        <td className="p-2 border">{venta.cantidad}</td>
+
+        <td className="p-2 border">{formatter.format(precioUnitario)}</td>
+
+        <td className="p-2 border">{formatter.format(total)}</td>
+
+        <td className="p-2 border">{cliente?.nombre ?? 'Cliente desconocido'}</td>
+      </tr>
+    );
+  })}
+</tbody>
+
+
             </table>
 
             {/* Paginación */}
