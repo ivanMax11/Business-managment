@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic'; // ⬅️ Esta línea es clave para evitar el error de build
+
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
@@ -10,11 +12,10 @@ interface Venta {
   fecha: string;
   variante: {
     producto: {
-    nombre: string;
-    precio: number; // ✅ Aquí añadimos el precio
+      nombre: string;
+      precio: number;
+    };
   };
-  }
-  
 }
 
 interface Cliente {
@@ -33,7 +34,6 @@ export default function ClienteHistorialPage() {
     style: 'currency',
     currency: 'ARS',
   });
-
 
   useEffect(() => {
     if (!clienteId) return;
@@ -96,13 +96,11 @@ export default function ClienteHistorialPage() {
                 </tr>
               ))}
             </tbody>
-
           </table>
 
           <p className="text-right font-bold mt-4">
             Total gastado: {formatoMoneda.format(total)}
           </p>
-
         </>
       )}
     </div>
