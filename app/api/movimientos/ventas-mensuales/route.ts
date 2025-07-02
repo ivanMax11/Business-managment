@@ -26,7 +26,7 @@ export async function GET() {
     // Formatear respuesta
     const data = (result as any[]).map((row) => {
       const fecha = new Date(row.mes);
-      const nombreMes = fecha.toLocaleString('es-ES', { month: 'short' });
+      const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long', timeZone: 'UTC' }).format(fecha);
       const anio = fecha.getFullYear();
       return {
         mes: `${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} ${anio}`,

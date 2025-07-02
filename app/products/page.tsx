@@ -11,15 +11,29 @@ export default async function ProductsPage({
   const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1;
   const limit = typeof searchParams.limit === 'string' ? parseInt(searchParams.limit) : 10;
 
+  // ✅ Incluir variantes para poder calcular el stock total
   const productos = await prisma.producto.findMany({
     skip: (page - 1) * limit,
     take: limit,
     orderBy: {
       fecha_creacion: 'desc',
     },
+    include: {
+      variantes: true,
+    },
   });
 
   const total = await prisma.producto.count();
+
+  // ✅ Transformar los productos para calcular stock total desde las variantes
+  const productosConStock = productos.map((p) => ({
+    id: p.id,
+    nombre: p.nombre,
+    codigo_barra: p.codigo_barra ?? '',
+    precio: p.precio,
+    stock: p.variantes.reduce((acc, v) => acc + v.stock, 0),
+    categoria: p.categoria,
+  }));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,7 +49,7 @@ export default async function ProductsPage({
       
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <ProductsTable 
-          productos={productos} 
+          productos={productosConStock} 
           currentPage={page}
           totalPages={Math.ceil(total / limit)}
         />

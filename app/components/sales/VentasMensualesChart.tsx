@@ -100,13 +100,13 @@ export default function VentasMensualesChart() {
           mesesOrden.indexOf(a.mes) - mesesOrden.indexOf(b.mes)
         );
 
-        setDatosGrafico({
+        setDatosGrafico(prev => ({
           labels: datosOrdenados.map(item => item.mes),
           datasets: [{
-            ...datosGrafico.datasets[0],
+            ...prev.datasets[0],
             data: datosOrdenados.map(item => item.cantidad)
           }]
-        });
+        }));
       } catch (error) {
         console.error('Error al cargar las ventas mensuales:', error);
       }

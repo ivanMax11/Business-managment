@@ -23,7 +23,7 @@ export default function NewProductPage() {
 
       const data = await response.json();
       toast.success('Producto creado exitosamente');
-      router.push(`/products/${data.id}`);
+      router.push(`/products/${data.producto.id}`);
     } catch (error) {
       toast.error('Error al crear el producto');
       console.error('Error:', error);

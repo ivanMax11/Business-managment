@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
@@ -11,12 +11,22 @@ const config: Config = {
       colors: {
         primary: {
           DEFAULT: '#2563eb', // blue-600
-          light: '#3b82f6', // blue-500
-          dark: '#1d4ed8', // blue-700
+          light: '#3b82f6',   // blue-500
+          dark: '#1d4ed8',    // blue-700
         },
+      },
+      backgroundImage: {
+        'noise-dark': "url('/textures/dark-pattern.svg')",
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
 };
-export default config
+
+export default config;

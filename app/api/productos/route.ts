@@ -57,9 +57,10 @@ export async function POST(request: Request) {
 
     const validatedData = productoSchema.parse({
       ...parsedBody,
-      codigo_barra: parsedBody.codigo_barra || uuidv4().slice(0, 12).toUpperCase(),
+      codigo_barra: parsedBody.codigo_barra?.trim() || uuidv4().slice(0, 12).toUpperCase(),
     });
 
+    // Primero, creamos el producto con sus variantes
     const producto = await prisma.producto.create({
       data: {
         codigo_barra: validatedData.codigo_barra,
@@ -77,22 +78,34 @@ export async function POST(request: Request) {
       },
     });
 
-    // Crear movimientos por cada variante con stock > 0
-    for (const variante of producto.variantes) {
-      if (variante.stock > 0) {
-        await prisma.movimientoStock.create({
-          data: {
-            producto_id: producto.id,
-            varianteId: variante.id,
-            cantidad: variante.stock,
-            tipo_movimiento: 'ENTRADA',
-            motivo: `Stock inicial de variante ${variante.color || ''}-${variante.talla || ''}`,
-          },
-        });
-      }
-    }
+    // Sumamos el total de stock (podés cambiar esto por un cálculo en base a costo o lo que prefieras)
+    const totalStock = producto.variantes.reduce((acc, variante) => acc + variante.stock, 0);
 
-    return NextResponse.json(producto, { status: 201 });
+    // Creamos una transacción general para esta entrada de producto
+    const transaccion = await prisma.transaccion.create({
+      data: {
+        tipo: 'COMPRA',
+       
+        fecha: new Date(),
+        total: totalStock,
+        movimientos: {
+          create: producto.variantes
+            .filter((v) => v.stock > 0)
+            .map((v) => ({
+              producto_id: producto.id,
+              varianteId: v.id,
+              cantidad: v.stock,
+              tipo_movimiento: 'ENTRADA',
+              motivo: `Stock inicial de variante ${v.color || ''}-${v.talla || ''}`,
+            })),
+        },
+      },
+      include: {
+        movimientos: true,
+      },
+    });
+
+    return NextResponse.json({ producto, transaccion }, { status: 201 });
   } catch (error: any) {
     console.error('Error:', error);
 
@@ -116,4 +129,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 

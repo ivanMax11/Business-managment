@@ -16,7 +16,7 @@ model User {
   createdAt DateTime @default(now()) @map("fecha_creacion")
   updatedAt DateTime @updatedAt @map("fecha_actualizacion")
 
-  @@map("usuarios") // Opcional: para usar otro nombre de tabla
+  @@map("usuarios")
 }
 
 model Producto {
@@ -34,20 +34,25 @@ model Producto {
 }
 
 model VarianteProducto {
-  id         Int      @id @default(autoincrement())
-  producto   Producto @relation(fields: [productoId], references: [id])
-  productoId Int
-  color      String?
-  talla      String?
-  stock      Int      @default(0)
-  ventas     Venta[]
-
+  id          Int                @id @default(autoincrement())
+  producto    Producto           @relation(fields: [productoId], references: [id])
+  productoId  Int
+  color       String?
+  talla       String?
+  stock       Int                @default(0)
+  ventas      Venta[]
   movimientos MovimientoStock[]
 }
 
 enum TipoMovimiento {
   ENTRADA
   SALIDA
+}
+
+enum TipoTransaccion {
+  VENTA
+  COMPRA
+  AJUSTE
 }
 
 model MovimientoStock {
@@ -62,6 +67,9 @@ model MovimientoStock {
   fecha           DateTime         @default(now())
   usuario_id      Int?
   usuario         String?
+
+  transaccion     Transaccion?     @relation(fields: [transaccionId], references: [id])
+  transaccionId   Int?
 }
 
 model Cliente {
@@ -72,14 +80,35 @@ model Cliente {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ventas    Venta[]
+  transacciones Transaccion[]
 }
 
 model Venta {
-  id         Int              @id @default(autoincrement())
-  variante   VarianteProducto @relation(fields: [varianteId], references: [id])
-  varianteId Int
-  cliente    Cliente          @relation(fields: [clienteId], references: [id])
-  clienteId  Int
-  cantidad   Int
-  fecha      DateTime         @default(now())
+  id             Int              @id @default(autoincrement())
+  variante       VarianteProducto @relation(fields: [varianteId], references: [id])
+  varianteId     Int
+  cliente        Cliente          @relation(fields: [clienteId], references: [id])
+  clienteId      Int
+  cantidad       Int
+  fecha          DateTime         @default(now())
+
+  // Nuevos campos sin afectar datos anteriores
+  precio_unitario Float?          // opcional, para nuevos tickets
+  subtotal        Float?          // cantidad * precio
+
+  transaccion     Transaccion?    @relation(fields: [transaccionId], references: [id])
+  transaccionId   Int?
+}
+
+model Transaccion {
+  id         Int       @id @default(autoincrement())
+  tipo       TipoTransaccion
+  cliente    Cliente?  @relation(fields: [clienteId], references: [id])
+  clienteId  Int?
+  fecha      DateTime  @default(now())
+  usuarioId  Int?
+  total      Float
+
+  ventas     Venta[]
+  movimientos MovimientoStock[]
 }

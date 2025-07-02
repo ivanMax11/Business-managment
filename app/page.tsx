@@ -1,150 +1,138 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/app/components/ui/Button';
+import Image from 'next/image';
 
+const FeatureCard = ({ icon, title, desc }: { icon: string; title: string; desc: string }) => (
+  <div className="bg-white/5 p-6 rounded-xl hover:bg-white/10 transition">
+    <div className="text-4xl mb-3">{icon}</div>
+    <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
+    <p className="text-sm text-gray-300">{desc}</p>
+  </div>
+);
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900 text-white">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">StockManager</h1>
-          <nav className="flex space-x-4">
-            <Link href="/auth/login" className="text-gray-600 hover:text-blue-600">
-              Iniciar Sesión
-            </Link>
-            <Link href="/auth/register" className="text-gray-600 hover:text-blue-600">
-              Registrarse
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <header className="px-6 py-5 flex justify-between items-center border-b border-white/10 sticky top-0 z-50 bg-black/30 backdrop-blur">
+  <div className="flex items-center ">
+    <Image 
+      src="/images/stocking.png" 
+      alt="Logo de Stocking" 
+      width={52} 
+      height={42} 
+      priority 
+    />
+    <span className="text-2xl font-bold text-blue-400">Stocking</span>
+  </div>
+  <nav className="space-x-4 text-sm">
+    <Link href="/auth/login" className="hover:text-blue-300 transition">Ingresar</Link>
+    <Link href="/auth/register" className="hover:text-blue-300 transition">Registrarse</Link>
+  </nav>
+</header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-            Gestión Inteligente de Stock
-          </h1>
-          <p className="mt-6 max-w-lg mx-auto text-xl text-gray-500">
-            Controla tu inventario de indumentaria de manera simple y eficiente.
+      {/* Hero */}
+      <section className="px-6 py-24 text-center max-w-3xl mx-auto">
+        <h2 className="text-5xl font-extrabold tracking-tight mb-6">Gestioná tu stock con precisión</h2>
+        <p className="text-lg text-gray-400 mb-10">
+          Controlá productos, variantes y movimientos con una plataforma intuitiva y lista para escalar.
+        </p>
+        <div className="flex justify-center gap-4 flex-wrap">
+          <Link href="/auth/register">
+            <Button size="lg">Probar ahora</Button>
+          </Link>
+          <Link href="/demo">
+            <Button variant="outline" size="lg">Ver Demo</Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Tarjetas informativas */}
+      <section className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-6 px-6 mb-24">
+        <FeatureCard
+          icon="📦"
+          title="Control de inventario"
+          desc="Gestioná entradas, salidas y ajustes con total claridad."
+        />
+        <FeatureCard
+          icon="📊"
+          title="Reportes al instante"
+          desc="Visualizá movimientos, totales y rendimiento sin esfuerzo."
+        />
+        <FeatureCard
+          icon="🧩"
+          title="Productos con variantes"
+          desc="Organizá por talla, color o formato en pocos clics."
+        />
+        <FeatureCard
+          icon="🛠️"
+          title="Flujos personalizados"
+          desc="Adaptá la plataforma a tu forma de trabajar."
+        />
+        <FeatureCard
+          icon="📱"
+          title="Responsive y simple"
+          desc="Accedé desde cualquier dispositivo, sin instalaciones."
+        />
+        <FeatureCard
+          icon="🔐"
+          title="Seguridad primero"
+          desc="Tus datos siempre protegidos y accesibles para vos."
+        />
+      </section>
+
+      {/* ¿Por qué StockManager? */}
+      <section className="px-6 py-20 bg-white/5">
+        <div className="max-w-4xl mx-auto text-center">
+          <h3 className="text-3xl font-bold mb-6">¿Por qué elegir Stocking?</h3>
+          <p className="text-gray-300 mb-8">
+            Porque entendemos el caos del día a día. Y diseñamos algo que lo resuelve sin complicarte.
           </p>
-          <div className="mt-10 flex justify-center gap-4">
-            <Link href="/dashboard/productos">
-              <Button size="lg">Comenzar</Button>
-            </Link>
-            <Link href="/demo">
-              <Button variant="outline" size="lg">
-                Ver Demo
-              </Button>
-            </Link>
+          <div className="grid sm:grid-cols-3 gap-6 text-left">
+            <FeatureCard
+              icon="⚡"
+              title="Rápido"
+              desc="Cargá, filtrá y mové productos sin cargar planillas eternas."
+            />
+            <FeatureCard
+              icon="🧠"
+              title="Inteligente"
+              desc="Aprovechá reportes automáticos para mejorar tus decisiones."
+            />
+            <FeatureCard
+              icon="🧘‍♂️"
+              title="Tranquilo"
+              desc="Sabé que tu stock está en orden. Todo el tiempo."
+            />
           </div>
         </div>
+      </section>
 
-        {/* Features Grid */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-            Características Principales
-          </h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.name}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0 bg-blue-100 p-3 rounded-full">
-                    <feature.icon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h3 className="ml-3 text-lg font-medium text-gray-900">
-                    {feature.name}
-                  </h3>
-                </div>
-                <p className="mt-2 text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
+      {/* Logos de negocios */}
+      <section className="py-16 px-6 text-center">
+        <h3 className="text-sm text-gray-400 uppercase tracking-wide mb-6">Confiado por negocios como</h3>
+        <div className="flex justify-center gap-10 flex-wrap opacity-70">
+          <img src="/logos/logo1.svg" alt="Tienda Bruma" className="h-8" />
+          <img src="/logos/logo2.svg" alt="Cebra Moda" className="h-8" />
+          <img src="/logos/logo3.svg" alt="Local 93" className="h-8" />
+          <img src="/logos/logo4.svg" alt="Indumentaria Sur" className="h-8" />
         </div>
-      </main>
+      </section>
+
+      {/* Testimonio */}
+      <section className="px-6 py-20 bg-gradient-to-br from-blue-600 to-blue-800 text-center text-white">
+        <p className="text-xl font-medium italic max-w-2xl mx-auto mb-4">
+          “Desde que usamos Stocking, nuestro depósito dejó de ser un misterio. Todo está a un clic.”
+        </p>
+        <p className="text-sm text-blue-100">— Sofía Rinaldi, Encargada de Tienda Bruma</p>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} StockManager. Todos los derechos reservados.
-          </p>
-        </div>
+      <footer className="text-center text-sm text-gray-500 py-6 border-t border-gray-800">
+        © {new Date().getFullYear()} Stocking. Desarrollado por MonteStack.
       </footer>
     </div>
   );
 }
-
-// Iconos (puedes reemplazar con tus propios iconos)
-const BarChartIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-    />
-  </svg>
-);
-
-const InventoryIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-    />
-  </svg>
-);
-
-const ReportIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-    />
-  </svg>
-);
-
-const features = [
-  {
-    name: 'Gestión Completa',
-    description: 'Administra todos tus productos con operaciones CRUD simples.',
-    icon: InventoryIcon,
-  },
-  {
-    name: 'Control de Stock',
-    description: 'Registra entradas, salidas y ajustes de inventario.',
-    icon: BarChartIcon,
-  },
-  {
-    name: 'Reportes Detallados',
-    description: 'Genera informes para tomar mejores decisiones de negocio.',
-    icon: ReportIcon,
-  },
-];

@@ -22,7 +22,7 @@ interface MovimientoFormatted {
   tipo: string;
   cantidad: number;
   motivo: string | null;
-  usuario: string; 
+  usuario: string;
 }
 
 export async function GET(request: Request) {
@@ -62,11 +62,11 @@ export async function GET(request: Request) {
       take: limit,
       where: fechaInicio
         ? {
-            fecha: {
-              gte: fechaInicio, // Fecha de inicio del período
-              lte: fechaFin, // Fecha final del período
-            },
-          }
+          fecha: {
+            gte: fechaInicio, // Fecha de inicio del período
+            lte: fechaFin, // Fecha final del período
+          },
+        }
         : undefined,
       orderBy: {
         fecha: 'desc',
@@ -77,20 +77,20 @@ export async function GET(request: Request) {
             nombre: true,
           },
         },
-        
+
       },
     });
 
     // Formatear los movimientos para la respuesta
-  const formattedMovimientos: MovimientoFormatted[] = movimientos.map((mov: any) => ({
-  id: mov.id,
-  fecha: mov.fecha,
-  producto: mov.producto.nombre,
-  tipo: mov.tipo_movimiento,
-  cantidad: mov.cantidad,
-  motivo: mov.motivo,
-  usuario: mov.usuario || 'Desconocido',
-}));
+    const formattedMovimientos: MovimientoFormatted[] = movimientos.map((mov: any) => ({
+      id: mov.id,
+      fecha: mov.fecha,
+      producto: mov.producto.nombre,
+      tipo: mov.tipo_movimiento,
+      cantidad: mov.cantidad,
+      motivo: mov.motivo,
+      usuario: mov.usuario || 'Desconocido',
+    }));
 
 
     return NextResponse.json(formattedMovimientos);
@@ -107,82 +107,105 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { producto_id, variante_id, cantidad, tipo_movimiento, motivo, usuario } = body;
+    const {
+      producto_id,
+      tipo_movimiento, // 'ENTRADA' o 'SALIDA'
+      motivo,
+      usuario,
+      variantes, // [{ varianteId, cantidad }]
+    } = body;
 
-    if (!variante_id || !cantidad || cantidad <= 0 || !tipo_movimiento) {
-      return NextResponse.json(
-        { error: 'Faltan datos obligatorios.' },
-        { status: 400 }
-      );
-    }
-
-    const varianteIdInt = parseInt(variante_id, 10);
     const productoIdInt = parseInt(producto_id, 10);
-
-    if (isNaN(varianteIdInt) || isNaN(productoIdInt)) {
-      return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    if (isNaN(productoIdInt)) {
+      return NextResponse.json({ error: 'ID de producto inválido' }, { status: 400 });
     }
 
-    const variante = await prisma.varianteProducto.findUnique({
-      where: { id: varianteIdInt },
-    });
-
-    if (!variante) {
-      return NextResponse.json(
-        { error: 'Variante no encontrada.' },
-        { status: 404 }
-      );
-    }
-
-    let nuevoStock = variante.stock;
-
+    // Determinar tipo de transacción válido (según enum)
+    let tipoTransaccion: 'VENTA' | 'COMPRA' | 'AJUSTE';
     if (tipo_movimiento === 'ENTRADA') {
-      nuevoStock += cantidad;
+      tipoTransaccion = 'AJUSTE'; // o 'COMPRA', depende de tu lógica
     } else if (tipo_movimiento === 'SALIDA') {
-      if (variante.stock < cantidad) {
-        return NextResponse.json(
-          { error: 'Stock insuficiente para realizar salida.' },
-          { status: 400 }
-        );
-      }
-      nuevoStock -= cantidad;
+      tipoTransaccion = 'VENTA';
     } else {
-      return NextResponse.json(
-        { error: 'Tipo de movimiento inválido.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tipo de movimiento inválido' }, { status: 400 });
     }
 
-    // ✅ Guardar el movimiento
-    const movimiento = await prisma.movimientoStock.create({
-      data: {
+    // Crear la transacción con movimientos anidados
+    const movimientosData = [];
+    let totalMovimiento = 0;
+
+    for (const mov of variantes) {
+      const varianteIdInt = parseInt(mov.varianteId, 10);
+      if (isNaN(varianteIdInt) || mov.cantidad <= 0) continue;
+
+      const variante = await prisma.varianteProducto.findUnique({
+        where: { id: varianteIdInt },
+      });
+
+      if (!variante) continue;
+
+      movimientosData.push({
         producto_id: productoIdInt,
         varianteId: varianteIdInt,
-        cantidad,
+        cantidad: mov.cantidad,
         tipo_movimiento,
         motivo,
         usuario,
         fecha: new Date(),
-      },
+      });
+
+      totalMovimiento += mov.cantidad;
+    }
+
+    const transaccion = await prisma.transaccion.create({
+      data: {
+        tipo: tipoTransaccion,
+        usuarioId: parseInt(usuario, 10),
+        fecha: new Date(),
+        total: totalMovimiento,
+        movimientos: {
+          create: movimientosData,
+        },
+      }
+
+
     });
 
-    // ✅ Actualizar stock
-    await prisma.varianteProducto.update({
-      where: { id: varianteIdInt },
-      data: { stock: nuevoStock },
-    });
 
-    return NextResponse.json({
-      message: 'Movimiento registrado exitosamente.',
-      movimiento,
-    });
+    // Actualizar stock de variantes luego de crear los movimientos
+    for (const mov of variantes) {
+      const varianteIdInt = parseInt(mov.varianteId, 10);
+      if (isNaN(varianteIdInt) || mov.cantidad <= 0) continue;
 
+      const variante = await prisma.varianteProducto.findUnique({
+        where: { id: varianteIdInt },
+      });
+
+      if (!variante) continue;
+
+      let nuevoStock = variante.stock;
+
+      if (tipo_movimiento === 'ENTRADA') {
+        nuevoStock += mov.cantidad;
+      } else if (tipo_movimiento === 'SALIDA') {
+        if (variante.stock < mov.cantidad) continue;
+        nuevoStock -= mov.cantidad;
+      }
+
+      await prisma.varianteProducto.update({
+        where: { id: varianteIdInt },
+        data: { stock: nuevoStock },
+      });
+    }
+
+    return NextResponse.json({ message: 'Movimientos registrados correctamente.', transaccion });
   } catch (error) {
-    console.error('[MOVIMIENTO_POST_ERROR]', error);
+    console.error('[MOVIMIENTO_BATCH_ERROR]', error);
     return NextResponse.json(
-      { error: 'Error al registrar el movimiento.' },
+      { error: 'Error al registrar movimientos.' },
       { status: 500 }
     );
   }
 }
+
 

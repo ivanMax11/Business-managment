@@ -20,19 +20,19 @@ export async function GET() {
 
     // 🔄 Movimientos de stock de hoy
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+today.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999);
+const endOfToday = new Date();
+endOfToday.setHours(23, 59, 59, 999);
 
-    const todayMovements = await prisma.movimientoStock.count({
-      where: {
-        fecha: {
-          gte: today,
-          lte: endOfToday,
-        },
-      },
-    });
+const todayTransactions = await prisma.transaccion.count({
+  where: {
+    fecha: {
+      gte: today,
+      lte: endOfToday,
+    },
+  },
+});
 
     // 📅 Fechas clave
     const now = new Date();
@@ -160,7 +160,7 @@ export async function GET() {
     return NextResponse.json({
       totalProducts,
       lowStockItems,
-      todayMovements,
+      todayMovements: todayTransactions,
       totalCustomers,
       monthlySales,
       monthlyRevenue,

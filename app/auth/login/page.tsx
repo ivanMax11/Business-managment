@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
 import LoginForm from '@/app/components/auth/LoginForm';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); // 👈 usar login del contexto
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,12 +31,15 @@ export default function LoginPage() {
         throw new Error(result.error || 'Credenciales incorrectas');
       }
 
-      console.log('[FRONT] Configurando cookie con token');
+      // Guardar token en cookies
       document.cookie = `token=${result.token}; path=/; max-age=86400; SameSite=Lax${
         window.location.protocol === 'https:' ? '; Secure' : ''
       }`;
 
-      console.log('[FRONT] Redirigiendo a dashboard');
+      // ✅ Actualizar estado global de sesión
+      login();
+
+      // Redirigir al dashboard
       router.push('/dashboard/user');
       
     } catch (err: any) {

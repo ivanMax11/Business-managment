@@ -32,10 +32,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { nombre, telefono, direccion } = body;
+    const { nombre, telefono } = body;
 
     const nuevoCliente = await prisma.cliente.create({
-      data: { nombre, telefono, direccion },
+      data: { nombre, telefono },
     });
 
     return NextResponse.json(nuevoCliente, { status: 201 });

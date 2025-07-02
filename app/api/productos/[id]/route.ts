@@ -54,10 +54,7 @@ export async function PUT(
         descripcion: validatedData.descripcion,
         precio: validatedData.precio,
         costo: validatedData.costo,
-        categoria: validatedData.categoria,
-        talla: validatedData.talla,
-        color: validatedData.color,
-        stock: validatedData.stock,
+        categoria: validatedData.categoria,     
         fecha_actualizacion: new Date(),
       },
     });

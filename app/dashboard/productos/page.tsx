@@ -1,3 +1,5 @@
+'use client'
+
 import { DataTable } from '@/app/components/ui/DataTable';
 import { useProductos } from '@/app/lib/hooks/useProductos';
 import Link from 'next/link';

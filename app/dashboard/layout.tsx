@@ -1,21 +1,19 @@
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { isAuthenticated, logout, loading } = useAuth();
 
   useEffect(() => {
-    // Verificación de autenticación
-    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-    if (!token) {
+    if (!loading && !isAuthenticated) {
       router.push('/auth/login');
     }
-  }, []);
+  }, [isAuthenticated, loading, router]);
+
+  if (loading || !isAuthenticated) return null; // opcional: podés poner un loader acá
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,9 +21,9 @@ export default function DashboardLayout({
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-blue-600">Panel de Control</h1>
           <div className="flex gap-4">
-            <button 
+            <button
               onClick={() => {
-                document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                logout();
                 router.push('/auth/login');
               }}
               className="text-gray-700 hover:text-blue-600"
@@ -35,9 +33,7 @@ export default function DashboardLayout({
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 py-6">{children}</main>
     </div>
   );
 }

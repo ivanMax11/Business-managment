@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 interface Cliente {
@@ -14,13 +14,16 @@ interface Producto {
     precio: number;
 }
 
+interface Variante {
+    producto: Producto;
+}
+
 interface Venta {
     id: number;
     cantidad: number;
     fecha: string;
-    producto: Producto;
+    variante: Variante;
     cliente: Cliente;
-
 }
 
 export default function SalesList() {
@@ -32,7 +35,7 @@ export default function SalesList() {
 
     const perPage = 10;
 
-    const fetchVentas = async () => {
+    const fetchVentas = useCallback(async () => {
         try {
             const params: any = {
                 page,
@@ -48,11 +51,13 @@ export default function SalesList() {
         } catch (error) {
             console.error('Error al obtener ventas', error);
         }
-    };
+    }, [page, perPage, startDate, endDate]);
 
     useEffect(() => {
         fetchVentas();
-    }, [page]);
+    }, [fetchVentas]);
+
+ 
 
     const totalPages = Math.ceil(total / perPage);
 
@@ -104,39 +109,39 @@ export default function SalesList() {
                     </tr>
                 </thead>
                 <tbody>
-  {ventas.map((venta) => {
-    const producto = venta.variante?.producto;
-    const cliente = venta.cliente;
+                    {ventas.map((venta) => {
+                        const producto = venta.variante?.producto;
+                        const cliente = venta.cliente;
 
-    const formatter = new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-    });
+                        const formatter = new Intl.NumberFormat('es-AR', {
+                            style: 'currency',
+                            currency: 'ARS',
+                        });
 
-    const precioUnitario = producto?.precio ?? 0;
-    const total = precioUnitario * venta.cantidad;
+                        const precioUnitario = producto?.precio ?? 0;
+                        const total = precioUnitario * venta.cantidad;
 
-    return (
-      <tr key={venta.id}>
-        <td className="p-2 border">
-          {new Date(venta.fecha).toLocaleDateString()}
-        </td>
+                        return (
+                            <tr key={venta.id}>
+                                <td className="p-2 border">
+                                    {new Date(venta.fecha).toLocaleDateString()}
+                                </td>
 
-        <td className="p-2 border">
-          {producto?.nombre ?? 'Sin nombre'}
-        </td>
+                                <td className="p-2 border">
+                                    {producto?.nombre ?? 'Sin nombre'}
+                                </td>
 
-        <td className="p-2 border">{venta.cantidad}</td>
+                                <td className="p-2 border">{venta.cantidad}</td>
 
-        <td className="p-2 border">{formatter.format(precioUnitario)}</td>
+                                <td className="p-2 border">{formatter.format(precioUnitario)}</td>
 
-        <td className="p-2 border">{formatter.format(total)}</td>
+                                <td className="p-2 border">{formatter.format(total)}</td>
 
-        <td className="p-2 border">{cliente?.nombre ?? 'Cliente desconocido'}</td>
-      </tr>
-    );
-  })}
-</tbody>
+                                <td className="p-2 border">{cliente?.nombre ?? 'Cliente desconocido'}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
 
 
             </table>
