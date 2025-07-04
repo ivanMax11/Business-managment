@@ -21,7 +21,7 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
 
   useEffect(() => {
-    axios.get('/api/clientes-id-alt').then((res) => {
+    axios.get('/api/clientes').then((res) => {
       setClientes(res.data);
     });
   }, []);
@@ -53,7 +53,7 @@ export default function ClientesPage() {
                   <td className="px-4 py-2 border">{cliente.ventas.length}</td>
                   <td className="px-4 py-2 border text-center">
                     <Link
-                      href={`/clientes-id-alt/${cliente.id}`}
+                      href={`/clientes/${cliente.id}`}
                       className="text-blue-600 hover:underline"
                     >
                       Ver historial
