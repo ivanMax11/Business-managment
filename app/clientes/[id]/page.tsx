@@ -1,6 +1,6 @@
 'use client';
 
-export const dynamic = 'force-dynamic'; // ⬅️ Esta línea es clave para evitar el error de build
+export const dynamic = 'force-dynamic'; 
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
