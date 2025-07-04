@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+export const runtime = 'node'; // ✅ Evita que Vercel use Edge Runtime
+
 const prisma = new PrismaClient();
 
 // GET: listar clientes con ventas
@@ -9,14 +11,17 @@ export async function GET() {
     const clientes = await prisma.cliente.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        ventas: true, // Incluimos las ventas relacionadas
+        ventas: true,
       },
     });
 
-    const clientesConVentas = clientes.map((cliente: typeof clientes[number]) => ({
-      ...cliente,
-      ventas: cliente.ventas || [], // Aseguramos que siempre tenga ventas como array
-    }));
+    const clientesConVentas = clientes.map(
+  (cliente: typeof clientes[number]) => ({
+    ...cliente,
+    ventas: cliente.ventas ?? [],
+  })
+);
+
 
     return NextResponse.json(clientesConVentas);
   } catch (error) {
