@@ -1,33 +1,50 @@
 import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(
   req: Request,
-  context: { params?: { id?: string } }
+  context: { params?: { id?: string } } // Protección contra ausencia de params
 ) {
   const idStr = context.params?.id;
   const id = idStr ? parseInt(idStr) : NaN;
+
+  console.log('GET /api/clientes/[id] →', id);
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
   }
 
-  // Simulamos una respuesta parecida a la real, pero sin usar DB
-  const fakeCliente = {
-    nombre: `Cliente #${id}`,
-    ventas: [
-      {
-        id: 1,
-        cantidad: 2,
-        fecha: new Date().toISOString(),
-        variante: {
-          producto: {
-            nombre: 'Producto de prueba',
-            precio: 1500,
+  try {
+    const cliente = await prisma.cliente.findUnique({
+      where: { id },
+      include: {
+        ventas: {
+          include: {
+            variante: {
+              include: {
+                producto: true,
+              },
+            },
+          },
+          orderBy: {
+            fecha: 'desc',
           },
         },
       },
-    ],
-  };
+    });
 
-  return NextResponse.json(fakeCliente);
+    if (!cliente) {
+      return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
+    }
+
+    return NextResponse.json(cliente);
+  } catch (error) {
+    console.error('Error al obtener cliente:', error);
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
 }
