@@ -40,7 +40,7 @@ export default function ClienteHistorialPage() {
 
     const fetchCliente = async () => {
       try {
-        const res = await axios.get(`/api/clientes/${clienteId}`);
+        const res = await axios.get(`/api/clientes-id-alt/${clienteId}`);
         setCliente(res.data);
       } catch (error) {
         console.error('Error al obtener cliente:', error);
