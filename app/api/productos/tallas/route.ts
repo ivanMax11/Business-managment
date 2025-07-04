@@ -11,9 +11,14 @@ export async function GET() {
       distinct: ['talla'],
     });
 
-    const tallas = variantes
-      .map((v) => v.talla?.trim())
-      .filter(Boolean) as string[];
+    const tallas = Array.from(
+  new Set(
+    variantes
+      .map((v: { talla: string | null }) => v.talla?.trim().toLowerCase())
+      .filter(Boolean)
+  )
+).sort();
+
 
     return NextResponse.json(tallas);
   } catch (error) {

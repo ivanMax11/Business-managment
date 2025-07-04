@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TicketPDF from '@/app/components/TicketPDF';
+import TicketPDF from '@/components/TicketPDF';
 
 interface Producto {
   id: number;

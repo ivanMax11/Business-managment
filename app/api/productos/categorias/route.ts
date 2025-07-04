@@ -13,8 +13,9 @@ export async function GET() {
     });
 
     const valores = categorias
-      .map((c) => c.categoria?.trim())
-      .filter(Boolean) as string[];
+  .map((c: { categoria: string | null }) => c.categoria?.trim())
+  .filter(Boolean) as string[];
+
 
     return NextResponse.json(valores);
   } catch (error) {

@@ -11,9 +11,14 @@ export async function GET() {
       distinct: ['color'],
     });
 
-    const colores = variantes
-      .map((v) => v.color?.trim())
-      .filter(Boolean) as string[];
+    const colores = Array.from(
+  new Set(
+    variantes
+      .map((v: { color: string | null }) => v.color?.trim().toLowerCase())
+      .filter(Boolean)
+  )
+).sort();
+
 
     return NextResponse.json(colores);
   } catch (error) {

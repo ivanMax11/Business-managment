@@ -1,7 +1,7 @@
 // app/products/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import { PrismaClient } from '@prisma/client';
-import { ProductDetail } from '@/app/components/productos/ProductDetail';
+import { ProductDetail } from '@/components/productos/ProductDetail';
 
 const prisma = new PrismaClient();
 

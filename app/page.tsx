@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 
 const FeatureCard = ({ icon, title, desc }: { icon: string; title: string; desc: string }) => (

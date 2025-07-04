@@ -1,9 +1,9 @@
 'use client'
 
-import { DataTable } from '@/app/components/ui/DataTable';
-import { useProductos } from '@/app/lib/hooks/useProductos';
+import { DataTable } from '@/components/ui/DataTable';
+import { useProductos } from '@/lib/hooks/useProductos';
 import Link from 'next/link';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 
 export default function ProductosPage() {
   const { data: productos, isLoading, error } = useProductos();

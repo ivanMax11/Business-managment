@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
-import { Pagination } from '@/app/components/ui/pagination';
+import { Pagination } from '@/components/ui/pagination';
 
 interface ProductsTableProps {
   productos: Array<{

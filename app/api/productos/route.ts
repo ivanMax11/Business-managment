@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { productoSchema } from '@/app/lib/validations/productoSchema';
+import { productoSchema } from '@/lib/validations/productoSchema';
 import { v4 as uuidv4, validate } from 'uuid';
 
 const prisma = new PrismaClient();
@@ -79,31 +79,34 @@ export async function POST(request: Request) {
     });
 
     // Sumamos el total de stock (podés cambiar esto por un cálculo en base a costo o lo que prefieras)
-    const totalStock = producto.variantes.reduce((acc, variante) => acc + variante.stock, 0);
+    const totalStock = producto.variantes.reduce(
+  (acc: number, variante: typeof producto.variantes[number]) => acc + variante.stock,
+  0
+);
+
 
     // Creamos una transacción general para esta entrada de producto
-    const transaccion = await prisma.transaccion.create({
-      data: {
-        tipo: 'COMPRA',
-       
-        fecha: new Date(),
-        total: totalStock,
-        movimientos: {
-          create: producto.variantes
-            .filter((v) => v.stock > 0)
-            .map((v) => ({
-              producto_id: producto.id,
-              varianteId: v.id,
-              cantidad: v.stock,
-              tipo_movimiento: 'ENTRADA',
-              motivo: `Stock inicial de variante ${v.color || ''}-${v.talla || ''}`,
-            })),
-        },
-      },
-      include: {
-        movimientos: true,
-      },
-    });
+const transaccion = await prisma.transaccion.create({
+  data: {
+    tipo: 'COMPRA',
+    fecha: new Date(),
+    total: totalStock,
+    movimientos: {
+      create: producto.variantes
+        .filter((v: typeof producto.variantes[number]) => v.stock > 0)
+        .map((v: typeof producto.variantes[number]) => ({
+          producto_id: producto.id,
+          varianteId: v.id,
+          cantidad: v.stock,
+          tipo_movimiento: 'ENTRADA',
+          motivo: `Stock inicial de variante ${v.color || ''}-${v.talla || ''}`,
+        })),
+    },
+  },
+  include: {
+    movimientos: true,
+  },
+});
 
     return NextResponse.json({ producto, transaccion }, { status: 201 });
   } catch (error: any) {

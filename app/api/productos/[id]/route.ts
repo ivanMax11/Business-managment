@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { productoSchema } from '@/app/lib/validations/productoSchema';
+import { productoSchema } from '@/lib/validations/productoSchema';
 
 const prisma = new PrismaClient();
 

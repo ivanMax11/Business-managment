@@ -13,7 +13,7 @@ export async function GET() {
       },
     });
 
-    const clientesConVentas = clientes.map(cliente => ({
+    const clientesConVentas = clientes.map((cliente: typeof clientes[number]) => ({
       ...cliente,
       ventas: cliente.ventas || [], // Aseguramos que siempre tenga ventas como array
     }));

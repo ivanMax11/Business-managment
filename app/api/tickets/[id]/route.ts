@@ -41,12 +41,15 @@ export async function GET(_: NextRequest, context: { params: { id: string } }) {
 
   let total = 0;
 
-  transaccion.ventas.forEach((venta, i) => {
+ transaccion.ventas.forEach(
+  (venta: typeof transaccion.ventas[number], i: number) => {
     const color = venta.variante?.color ?? '-';
     const talle = venta.variante?.talla ?? '-';
     doc.text(`${i + 1}. Variante ${venta.varianteId} - ${color} / ${talle} x${venta.cantidad}`);
     total += venta.cantidad;
-  });
+  }
+);
+
 
   doc.moveDown().text(`Total unidades: ${total}`, { align: 'right' });
   doc.end();

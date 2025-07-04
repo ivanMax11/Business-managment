@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/app/lib/prisma';
+import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -10,9 +11,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const variantes = await prisma.varianteProducto.findMany({
-      where: {
-        productoId: productoId,
-      },
+      where: { productoId },
       select: {
         id: true,
         color: true,
@@ -60,7 +59,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     // Crear variante + movimiento dentro de una transacción
-    const resultado = await prisma.$transaction(async (tx) => {
+    const resultado = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const nuevaVariante = await tx.varianteProducto.create({
         data: {
           productoId,
@@ -87,6 +86,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json(resultado, { status: 201 });
   } catch (error) {
     console.error('[POST_VARIANTE_ERROR]', error);
-    return NextResponse.json({ error: 'Error al crear variante' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Error al crear variante' },
+      { status: 500 }
+    );
   }
 }

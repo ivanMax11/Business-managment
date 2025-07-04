@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiPackage, FiAlertTriangle, FiRefreshCw, FiDollarSign, FiUsers, FiTrendingUp, FiList, FiPieChart } from 'react-icons/fi';
 import axios from 'axios';
-import VentasMensualesChart from '@/app/components/sales/VentasMensualesChart';
+import VentasMensualesChart from '@/components/sales/VentasMensualesChart';
 
 interface DashboardStats {
   products: number;

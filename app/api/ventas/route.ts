@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, TipoMovimiento } from '@prisma/client';
+import { PrismaClient, TipoMovimiento, TipoTransaccion } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -13,7 +13,10 @@ export async function POST(request: Request) {
     if (
       !Array.isArray(variantes) ||
       variantes.length === 0 ||
-      variantes.some(v => !v.varianteId || !v.cantidad || v.cantidad <= 0) ||
+      variantes.some(
+        (v: { varianteId?: number; cantidad?: number }) =>
+          !v.varianteId || !v.cantidad || v.cantidad <= 0
+      ) ||
       !cliente?.nombre
     ) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
@@ -24,7 +27,7 @@ export async function POST(request: Request) {
       where: {
         OR: [
           { nombre: cliente.nombre },
-          ...(cliente.email ? [{ email: cliente.email }] : [])
+          ...(cliente.email ? [{ email: cliente.email }] : []),
         ],
       },
     });
@@ -39,12 +42,32 @@ export async function POST(request: Request) {
       });
     }
 
-    const ventas: any[] = [];
-    const movimientos: any[] = [];
+    const ventas: {
+      varianteId: number;
+      clienteId: number;
+      cantidad: number;
+      precio_unitario?: number;
+      fecha: Date;
+    }[] = [];
+
+    const movimientos: {
+      producto_id: number;
+      varianteId: number;
+      cantidad: number;
+      tipo_movimiento: TipoMovimiento;
+      motivo: string;
+      usuario: string;
+      fecha: Date;
+    }[] = [];
+
     let totalCantidad = 0;
 
     // 🔄 Procesar variantes
-    for (const v of variantes) {
+    for (const v of variantes as {
+      varianteId: number;
+      cantidad: number;
+      precio_unitario?: number;
+    }[]) {
       const variante = await prisma.varianteProducto.findUnique({
         where: { id: v.varianteId },
         select: {
@@ -55,14 +78,19 @@ export async function POST(request: Request) {
       });
 
       if (!variante) {
-        return NextResponse.json({ error: `Variante con ID ${v.varianteId} no encontrada` }, { status: 404 });
+        return NextResponse.json(
+          { error: `Variante con ID ${v.varianteId} no encontrada` },
+          { status: 404 }
+        );
       }
 
       if (variante.stock < v.cantidad) {
-        return NextResponse.json({ error: `Stock insuficiente para variante ${v.varianteId}` }, { status: 400 });
+        return NextResponse.json(
+          { error: `Stock insuficiente para variante ${v.varianteId}` },
+          { status: 400 }
+        );
       }
 
-      // Acumular venta
       ventas.push({
         varianteId: variante.id,
         clienteId: clienteExistente.id,
@@ -71,7 +99,6 @@ export async function POST(request: Request) {
         fecha: new Date(),
       });
 
-      // Acumular movimiento
       movimientos.push({
         producto_id: variante.productoId,
         varianteId: variante.id,
@@ -82,7 +109,6 @@ export async function POST(request: Request) {
         fecha: new Date(),
       });
 
-      // Actualizar stock
       await prisma.varianteProducto.update({
         where: { id: variante.id },
         data: {
@@ -95,38 +121,42 @@ export async function POST(request: Request) {
       totalCantidad += v.cantidad;
     }
 
-    // 🧾 Crear transacción única con ventas y movimientos
-   const transaccion = await prisma.transaccion.create({
-  data: {
-    tipo: 'VENTA',
-    clienteId: clienteExistente.id,
-    fecha: new Date(),
-    total: totalCantidad,
-    ventas: { create: ventas },
-    movimientos: { create: movimientos },
-  },
-  include: {
-    cliente: true,
-   ventas: {
-  include: {
-    variante: {
-      include: {
-        producto: true,
+    // 🧾 Crear transacción con ventas y movimientos
+    const transaccion = await prisma.transaccion.create({
+      data: {
+        tipo: TipoTransaccion.VENTA,
+        clienteId: clienteExistente.id,
+        fecha: new Date(),
+        total: totalCantidad,
+        ventas: { create: ventas },
+        movimientos: { create: movimientos },
       },
-    },
-  },
-   }
-  }
-});
+      include: {
+        cliente: true,
+        ventas: {
+          include: {
+            variante: {
+              include: {
+                producto: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-
-   return NextResponse.json({
-  message: 'Venta registrada correctamente',
-  transaccion,
-}, { status: 200 });
-
-  } catch (error) {
+    return NextResponse.json(
+      {
+        message: 'Venta registrada correctamente',
+        transaccion,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
     console.error('Error al registrar venta:', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
   }
 }

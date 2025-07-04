@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
@@ -20,19 +20,19 @@ export async function GET() {
 
     // 🔄 Movimientos de stock de hoy
     const today = new Date();
-today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
 
-const endOfToday = new Date();
-endOfToday.setHours(23, 59, 59, 999);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
-const todayTransactions = await prisma.transaccion.count({
-  where: {
-    fecha: {
-      gte: today,
-      lte: endOfToday,
-    },
-  },
-});
+    const todayTransactions = await prisma.transaccion.count({
+      where: {
+        fecha: {
+          gte: today,
+          lte: endOfToday,
+        },
+      },
+    });
 
     // 📅 Fechas clave
     const now = new Date();
@@ -60,16 +60,22 @@ const todayTransactions = await prisma.transaccion.count({
 
     const monthlySales = ventasDelMes.length;
 
-    const monthlyRevenue = ventasDelMes.reduce((total, venta) => {
-      const precio = venta.variante?.producto?.precio || 0;
-      return total + venta.cantidad * precio;
-    }, 0);
+    const monthlyRevenue = ventasDelMes.reduce(
+      (total: number, venta: typeof ventasDelMes[number]) => {
+        const precio = venta.variante?.producto?.precio || 0;
+        return total + venta.cantidad * precio;
+      },
+      0
+    );
 
-    const monthlyProfit = ventasDelMes.reduce((total, venta) => {
-      const precio = venta.variante?.producto?.precio || 0;
-      const costo = venta.variante?.producto?.costo || 0;
-      return total + venta.cantidad * (precio - costo);
-    }, 0);
+    const monthlyProfit = ventasDelMes.reduce(
+      (total: number, venta: typeof ventasDelMes[number]) => {
+        const precio = venta.variante?.producto?.precio || 0;
+        const costo = venta.variante?.producto?.costo || 0;
+        return total + venta.cantidad * (precio - costo);
+      },
+      0
+    );
 
     // 🧾 Ventas del mes anterior
     const ventasMesAnterior = await prisma.venta.count({
@@ -97,16 +103,22 @@ const todayTransactions = await prisma.transaccion.count({
       },
     });
 
-    const revenueLastMonth = ventasMesAnteriorDetalladas.reduce((total, venta) => {
-      const precio = venta.variante?.producto?.precio || 0;
-      return total + venta.cantidad * precio;
-    }, 0);
+    const revenueLastMonth = ventasMesAnteriorDetalladas.reduce(
+      (total: number, venta: typeof ventasMesAnteriorDetalladas[number]) => {
+        const precio = venta.variante?.producto?.precio || 0;
+        return total + venta.cantidad * precio;
+      },
+      0
+    );
 
-    const profitLastMonth = ventasMesAnteriorDetalladas.reduce((total, venta) => {
-      const precio = venta.variante?.producto?.precio || 0;
-      const costo = venta.variante?.producto?.costo || 0;
-      return total + venta.cantidad * (precio - costo);
-    }, 0);
+    const profitLastMonth = ventasMesAnteriorDetalladas.reduce(
+      (total: number, venta: typeof ventasMesAnteriorDetalladas[number]) => {
+        const precio = venta.variante?.producto?.precio || 0;
+        const costo = venta.variante?.producto?.costo || 0;
+        return total + venta.cantidad * (precio - costo);
+      },
+      0
+    );
 
     const revenueGrowth =
       revenueLastMonth > 0

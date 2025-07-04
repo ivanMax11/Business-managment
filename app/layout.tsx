@@ -1,9 +1,9 @@
 'use client';
 
-import '@/app/globals.css';
+import '@/globals.css';
 import { QueryProvider } from './providers/QueryProvider';
-import { Navbar } from '@/app/components/NavBar';
-import { AuthProvider, useAuth } from '@/app/context/AuthContext';
+import { Navbar } from '@/components/NavBar';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {

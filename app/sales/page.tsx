@@ -1,4 +1,4 @@
-import SalesList from '@/app/components/sales/SalesList';
+import SalesList from '@/components/sales/SalesList';
 
 export default function SalesPage() {
   return (

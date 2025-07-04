@@ -3,7 +3,7 @@
 import { DataTable } from '../ui/DataTable';
 import { Button } from '../ui/Button';
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '@/app/lib/api/client';
+import apiClient from '@/lib/api/client';
 
 interface Movimiento {
   id: number;
